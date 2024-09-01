@@ -8,6 +8,8 @@ class EasyRecorder {
 		this.recording = [];
 		this.idCounter = 0;
 		this.idMap = new Map();
+		this.baseURL = window.location.origin;
+		//this.baseURL = "https://online.supaigaleongatha.com.au";
 
 		this.registerEvents();
 	}
@@ -34,6 +36,7 @@ class EasyRecorder {
 				}
 			} catch (e) {
 				console.warn("Could not access stylesheet:", stylesheet.href);
+				console.warn(e);
 			}
 		}
 
@@ -42,7 +45,7 @@ class EasyRecorder {
 
 	async scripts() {
 		let data = [];
-		const ignoreElements = /EasyRecorder|EasyCompress|EasyEvent|matomo|Matomo/;
+		const ignoreElements = /EasyRecorder|EasyCompress|EasyEvent|matomo|Matomo|gtag|clarity/;
 		for (let m = 0; m <= 1; m++) {
 			const masterElement = m ? document.body : document.head;
 			let scripts = [];
@@ -67,22 +70,91 @@ class EasyRecorder {
 		// Assign an ID to body even though we don't bother storing it.
 		if (!this.bodyID) {
 			this.bodyID = this.getUniqueID(document.body);
-			this.idMap.set(this.bodyID, document.body);
 		}
 		
-		const elements = Array.from(document.body.children).filter(el => el.tagName.toLowerCase() !== "script");
+		const ignoreElements = ["SCRIPT", "STYLE", "LINK"];
+		const elements = Array.from(document.body.children).filter(el => !ignoreElements.includes(el.tagName));
 		const serialise = elements.map((el, i) => {
 			const clone = el.cloneNode(true);
 			const uniqueID = this.getUniqueID(el);
 			clone.setAttribute("easy-id", uniqueID);
-			this.idMap.set(uniqueID, el);
+
+			this.convertRelativeURLs(clone);
+
+			this.assignElementIDs(el, clone);
+
 			return clone.outerHTML;
 		});
 		return EasyCompress.compress(JSON.stringify(serialise));
 	}
 
+	assignElementIDs(originalNode, clonedNode) {
+        if (!originalNode || !clonedNode) return;
+
+        // Assign unique ID to the original node and set it on the cloned node
+        if (originalNode.nodeType === Node.ELEMENT_NODE) {
+            const uniqueID = this.getUniqueID(originalNode);
+            clonedNode.setAttribute("easy-id", uniqueID);
+        }
+
+        // Recursively process child nodes
+        const originalChildren = Array.from(originalNode.childNodes);
+        const clonedChildren = Array.from(clonedNode.childNodes);
+
+        for (let i = 0; i < originalChildren.length; i++) {
+            this.assignElementIDs(originalChildren[i], clonedChildren[i]);
+        }
+    }
+
+	convertRelativeURLs(element) {
+		[...(element.tagName === "IMG" ? [element] : []), ...element.querySelectorAll('img')].forEach(img => {
+			const src = img.getAttribute('src');
+			if (src && !src.startsWith('http')) {
+				img.setAttribute('src', new URL(src, this.baseURL).href);
+			}
+		});
+
+		[...(element.tagName === "LINK" ? [element] : []), ...element.querySelectorAll('link')].forEach(link => {
+			const href = link.getAttribute('href');
+			if (href && !href.startsWith('http')) {
+				link.setAttribute('href', new URL(href, this.baseURL).href);
+			}
+		});
+	
+		[...(element.tagName === "A" ? [element] : []), ...element.querySelectorAll('a')].forEach(a => {
+			const href = a.getAttribute('href');
+			if (href && !href.startsWith('http')) {
+				a.setAttribute('href', new URL(href, this.baseURL).href);
+			}
+		});
+	
+		[...(element.tagName === "SCRIPT" ? [element] : []), ...element.querySelectorAll('script')].forEach(script => {
+			const src = script.getAttribute('src');
+			if (src && !src.startsWith('http')) {
+				script.setAttribute('src', new URL(src, this.baseURL).href);
+			}
+		});
+	
+		[...(element.hasAttribute("style") ? [element] : []), ...element.querySelectorAll('[style]')].forEach(el => {
+			const style = el.getAttribute('style');
+			if (style) {
+				el.setAttribute('style', style.replace(/url\((?!['"]?(?:http|data):)['"]?([^'")]+)['"]?\)/g, (match, p1) => {
+					return `url(${new URL(p1, this.baseURL).href})`;
+				}));
+			}
+		});
+	
+		[...(element.tagName === "STYLE" ? [element] : []), ...element.querySelectorAll('style')].forEach(style => {
+			style.textContent = style.textContent.replace(/url\((?!['"]?(?:http|data):)['"]?([^'")]+)['"]?\)/g, (match, p1) => {
+				return `url(${new URL(p1, this.baseURL).href})`;
+			});
+		});
+	}
+
 	registerEvents() {
 		document.addEventListener("DOMContentLoaded", async () => {
+			this.observeMutations();
+
 			this.styles().then(data => {
 				console.log("styles");
 				console.log(data);
@@ -96,8 +168,6 @@ class EasyRecorder {
 			this.bodyElements().then(data => {
 				console.log("elements");
 				console.log(data);
-
-				this.observeMutations();
 			});
 		});
 
@@ -162,6 +232,7 @@ class EasyRecorder {
 						}
 						const groupedMutation = mutationMap.get(addKey);
 						mutation.addedNodes.forEach(node => {
+							console.log("Adding node");
 							const index = Array.from(mutation.target.childNodes).indexOf(node);
 							if (node.nodeType === Node.TEXT_NODE) {
 								groupedMutation.addedNodes.push({
@@ -171,6 +242,7 @@ class EasyRecorder {
 								});
 							} else {
 								node.index = index;
+								this.convertRelativeURLs(node);
 								groupedMutation.addedNodes.push(node);
 							}
 						});
@@ -192,7 +264,19 @@ class EasyRecorder {
 						}
 						const groupedMutation = mutationMap.get(removeKey);
 						mutation.removedNodes.forEach(node => {
-							const index = Array.from(mutation.target.childNodes).indexOf(node);
+							console.log("Removing node");
+							let index = Array.from(mutation.target.childNodes).indexOf(node);
+							if (index === -1) {
+								// Node has already been removed, find its previous index
+								const previousSibling = node.previousSibling;
+								if (previousSibling) {
+									const previousIndex = Array.from(mutation.target.childNodes).indexOf(previousSibling);
+									index = previousIndex + 1;
+								} else {
+									index = 0; // Node was the first child
+								}
+							}
+
 							if (node.nodeType === Node.TEXT_NODE) {
 								groupedMutation.removedNodes.push({
 									nodeType: node.nodeType,
@@ -206,7 +290,8 @@ class EasyRecorder {
 						});
 						lastEventType = 'remove';
 					}
-				} else if (mutation.type === 'attributes') {
+				} else if (mutation.type === 'attributes' && mutation.attributeName !== 'easy-id') {
+					//console.log(`Attribute changed ${mutation.attributeName} from ${mutation.oldValue} to ${mutation.target.getAttribute(mutation.attributeName)}`);
 					// Handle attribute changes
 					if (!mutationMap.has(key)) {
 						mutationMap.set(key, {
@@ -237,13 +322,14 @@ class EasyRecorder {
 			});
 		
 			mutationMap.forEach(groupedMutation => {
-				groupedMutation.addedNodes.forEach(node => {
-					if (node.nodeType === Node.ELEMENT_NODE) {
-						const uniqueID = this.getUniqueID(node);
-						node.setAttribute("easy-id", uniqueID);
-					}
-				});
+				// groupedMutation.addedNodes.forEach(node => {
+				// 	if (node.nodeType === Node.ELEMENT_NODE) {
+				// 		const uniqueID = this.getUniqueID(node);
+				// 		node.setAttribute("easy-id", uniqueID);
+				// 	}
+				// });
 				const e = new EasyMutationEvent(this.currentTime, groupedMutation, this.getUniqueID.bind(this));
+				
 				this.recording.push(e);
 			});
 		});

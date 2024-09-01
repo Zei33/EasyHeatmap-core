@@ -92,7 +92,7 @@ class EasyReplayer {
 		}
 
 		const raw = await EasyDecompress.decompress(data);
-		const elements = JSON.parse(raw);
+		const elements = JSON.parse(raw);console.log(elements);
 
 		const parser = new DOMParser();
 		elements.forEach(elementHTML => {
@@ -134,6 +134,11 @@ class EasyReplayer {
 			this.replayEvent(event);
 			this.replayTime = event.time;
 			this.currentEvent++;
+			if (this.currentEvent > 173) {
+				console.log(this.recording[this.currentEvent]);
+				console.log("Stopping replay");
+				return;
+			}
 			if (this.currentEvent < this.recording.length) {
 				this.triggerNextEvent(this.recording[this.currentEvent]);
 			}
@@ -179,7 +184,7 @@ class EasyReplayer {
 		EasyKeyboard.typeKey(event);
 	}
 
-	replayMutationEvent(event) {console.log(event);
+	replayMutationEvent(event) {
 		const parser = new DOMParser();
         const target = this.idMap.get(String(event.target));
 
@@ -187,8 +192,11 @@ class EasyReplayer {
 
         switch (event.type) {
             case 'childList':
-				console.log(event.removedNodes);
+				console.log(`Changing children for target:`);
+				console.log(target);
                 event.removedNodes.forEach(nodeData => {
+					console.log(`Removing node:`);
+					console.log(nodeData);
 					if (nodeData.nodeType === Node.TEXT_NODE) {
 						// Find and remove the text node at the specified index
 						const textNode = target.childNodes[nodeData.index];
@@ -204,6 +212,8 @@ class EasyReplayer {
 					}
 				});
                 event.addedNodes.forEach(nodeData => {
+					console.log(`Adding node:`);
+					console.log(nodeData);
 					if (nodeData.text) {
 						let node = document.createTextNode(nodeData.html);
 						// Insert the text node at the correct position
@@ -225,13 +235,20 @@ class EasyReplayer {
 				});
                 break;
             case 'attributes':
+				console.log("Changing attribute for target:")
+				console.log(target);
                 if (event.newValue !== null) {
+					console.log(`Setting attribute ${event.attributeName} to ${event.newValue}`);
                     target.setAttribute(event.attributeName, event.newValue);
                 } else {
+					console.log(`Removing attribute ${event.attributeName}`);
                     target.removeAttribute(event.attributeName);
                 }
                 break;
             case 'characterData':
+				console.log("Changing character data for target:");
+				console.log(target);
+				console.log(`Setting text content to ${event.newValue}`);
                 target.textContent = event.oldValue;
                 break;
         }
@@ -283,7 +300,7 @@ class EasyCursor {
 
 	click(event) {
 		const target = event.focusedElement ? document.querySelector(event.focusedElement) : document.body;
-		if (target != document.body) target.focus()
+		if (target != document.body && target != null) target.focus()
 		else document.activeElement.blur();
 	}
 }

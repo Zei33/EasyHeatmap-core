@@ -254,12 +254,23 @@ class EasyMutationEvent extends EasyEvent {
 		super("mutation", time);
 		this.type = mutation.type;
 		this.target = getUniqueID == null ? mutation.target : getUniqueID(mutation.target);
-		this.addedNodes = getUniqueID == null ? mutation.addedNodes : Array.from(mutation.addedNodes).map(node => ({
-			id: node.nodeType === Node.TEXT_NODE ? undefined : getUniqueID(node),
-			index: node.index,
-			html: node.outerHTML || node.textContent,
-			text: node.nodeType === Node.TEXT_NODE ? true : undefined,
-		}));
+		this.addedNodes = getUniqueID == null ? mutation.addedNodes : Array.from(mutation.addedNodes).map(node => {
+			if (node.nodeType === Node.TEXT_NODE) {
+				return {
+					index: node.index,
+					html: node.textContent
+				}
+			} else {
+				const clone = node.cloneNode(true);
+				const uniqueID = getUniqueID(node);
+				clone.setAttribute("easy-id", uniqueID);
+				return {
+					id: uniqueID,
+					index: node.index,
+					html: clone.outerHTML
+				}
+			}
+		});
 		this.removedNodes = getUniqueID == null ? mutation.removedNodes : Array.from(mutation.removedNodes).map(node => ({
 			id: node.nodeType === Node.TEXT_NODE ? undefined : getUniqueID(node),
 			index: node.index,
@@ -269,6 +280,42 @@ class EasyMutationEvent extends EasyEvent {
 		this.attributeName = mutation.attributeName;
 		this.newValue = mutation.newValue;
 		this.oldValue = mutation.oldValue;
+
+		if (getUniqueID != null && mutation.addedNodes.length) {
+			console.log(Array.from(mutation.addedNodes));
+            Array.from(mutation.addedNodes).forEach(node => {
+                this.traverseNodes(node, getUniqueID);
+            });
+        }
+	}
+
+	traverseNodes(node, getUniqueID) {
+		if (!node || !getUniqueID) return;
+		console.log(node);
+		if (node.nodeType === Node.ELEMENT_NODE) {
+			const clone = node.cloneNode(true);
+            const uniqueID = getUniqueID(node);
+			clone.setAttribute("easy-id", uniqueID);
+            this.addedNodes.push({
+                id: uniqueID,
+                index: node.index,
+                html: clone.outerHTML,
+                text: undefined,
+            });
+        } else if (node.nodeType === Node.TEXT_NODE) {
+            this.addedNodes.push({
+                id: undefined,
+                index: node.index,
+                html: node.textContent,
+                text: true,
+            });
+        }
+
+		if (node.childNodes) {
+			Array.from(node.childNodes).forEach(childNode => {
+				this.traverseNodes(childNode, getUniqueID);
+			});
+		}
 	}
 
 	static parse(data) {
