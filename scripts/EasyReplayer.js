@@ -11,7 +11,6 @@ class EasyReplayer {
 		this.cursor = null;
 		this.styles = null;
 		this.idMap = new Map();
-		this.debugFrame = -1;
 	}
 
 	async load(options, start = false) {
@@ -140,13 +139,7 @@ class EasyReplayer {
 
 	triggerNextEvent(event) {
 		setTimeout(() => {
-			if (event.time === this.debugFrame) {
-				console.log(event.time);
-				console.log(event);
-				this.replayEvent(event, true);
-			} else {
-				this.replayEvent(event, false);
-			}
+			this.replayEvent(event);
 			this.replayTime = event.time;
 			this.currentEvent++;
 			if (this.currentEvent < this.recording.length) {
@@ -155,7 +148,7 @@ class EasyReplayer {
 		}, event.time - this.replayTime);
 	}
 
-	replayEvent(event, debug = false) {
+	replayEvent(event) {
 		if (event.event === "mouse") {
 			this.replayMouseMoveEvent(event);
 		} else if (event.event === "click") {
@@ -165,7 +158,7 @@ class EasyReplayer {
 		} else if (event.event === "scroll") {
 			window.scrollTo(event.x, event.y);
 		} else if (event.event === "mutation") {
-			this.replayMutationEvent(event, debug);
+			this.replayMutationEvent(event);
 		}
 	}
 
@@ -194,23 +187,7 @@ class EasyReplayer {
 		EasyKeyboard.typeKey(event);
 	}
 
-	replayMutationEvent(event, debug = false) {
-		if (debug) {
-			console.log(`Replaying mutation event at ${event.time}`);
-			if (event.type === "childList") {
-				console.log(`Changing children for target:`);
-				console.log(event.target);
-				console.log(`Target matched:`);
-				const matchedTarget = this.idMap.get(String(event.target));
-				console.log(matchedTarget);
-				if (!matchedTarget) console.log(this.idMap);
-				console.log(`Removed nodes:`);
-				console.log(event.removedNodes);
-				console.log(`Added nodes:`);
-				console.log(event.addedNodes);
-			}
-		}
-
+	replayMutationEvent(event) {
 		const parser = new DOMParser();
         const target = this.idMap.get(String(event.target));
 
@@ -218,42 +195,79 @@ class EasyReplayer {
 
         switch (event.type) {
             case 'childList':
-                event.addedNodes.forEach(nodeData => {
-					if (nodeData.text) {
-						let node = document.createTextNode(nodeData.html);
-						// Insert the text node at the correct position
-						if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
-							target.insertBefore(node, target.childNodes[nodeData.index]);
+				event.nodes.forEach(nodeData => {
+					console.log(nodeData);
+					if (nodeData.action === 0) { // Remove node (0)
+						if (nodeData.text === true) {
+							// Find and remove the text node at the specified index
+							const textNode = target.childNodes[nodeData.index];
+							if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.html) {
+								textNode.remove();
+							}
 						} else {
-							target.appendChild(node);
+							const existingNode = this.idMap.get(String(nodeData.id));
+							if (existingNode) {
+								existingNode.remove();
+							}
 						}
-					} else {
-						let node = parser.parseFromString(nodeData.html, 'text/html').body.firstChild;
-						this.idMap.set(String(nodeData.id), node);
-						// Insert the node at the correct position
-						if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
-							target.insertBefore(node, target.childNodes[nodeData.index]);
+					} else { // Add node (1)
+						if (nodeData.text) {
+							let node = document.createTextNode(nodeData.html);
+							// Insert the text node at the correct position
+							if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
+								target.insertBefore(node, target.childNodes[nodeData.index]);
+							} else {
+								target.appendChild(node);
+							}
 						} else {
-							target.appendChild(node);
+							let node = parser.parseFromString(nodeData.html, 'text/html').body.firstChild;
+							this.idMap.set(String(nodeData.id), node);
+							// Insert the node at the correct position
+							if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
+								target.insertBefore(node, target.childNodes[nodeData.index]);
+							} else {
+								target.appendChild(node);
+							}
 						}
 					}
 				});
 
-				event.removedNodes.forEach(nodeData => {
-					if (nodeData.text === true) {
-						// Find and remove the text node at the specified index
-						const textNode = target.childNodes[nodeData.index];
-						if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.html) {
-							textNode.remove();
-						}
-					} else {
-						const existingNode = this.idMap.get(String(nodeData.id));
-						if (existingNode) {
-							existingNode.remove();
-							//this.idMap.delete(String(nodeData.id));
-						}
-					}
-				});
+                // event.addedNodes.forEach(nodeData => {
+				// 	if (nodeData.text) {
+				// 		let node = document.createTextNode(nodeData.html);
+				// 		// Insert the text node at the correct position
+				// 		if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
+				// 			target.insertBefore(node, target.childNodes[nodeData.index]);
+				// 		} else {
+				// 			target.appendChild(node);
+				// 		}
+				// 	} else {
+				// 		let node = parser.parseFromString(nodeData.html, 'text/html').body.firstChild;
+				// 		this.idMap.set(String(nodeData.id), node);
+				// 		// Insert the node at the correct position
+				// 		if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
+				// 			target.insertBefore(node, target.childNodes[nodeData.index]);
+				// 		} else {
+				// 			target.appendChild(node);
+				// 		}
+				// 	}
+				// });
+
+				// event.removedNodes.forEach(nodeData => {
+				// 	if (nodeData.text === true) {
+				// 		// Find and remove the text node at the specified index
+				// 		const textNode = target.childNodes[nodeData.index];
+				// 		if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.html) {
+				// 			textNode.remove();
+				// 		}
+				// 	} else {
+				// 		const existingNode = this.idMap.get(String(nodeData.id));
+				// 		if (existingNode) {
+				// 			existingNode.remove();
+				// 			//this.idMap.delete(String(nodeData.id));
+				// 		}
+				// 	}
+				// });
                 break;
             case 'attributes':
                 if (event.newValue !== null) {

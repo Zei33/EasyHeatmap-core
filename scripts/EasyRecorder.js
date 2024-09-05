@@ -217,77 +217,128 @@ class EasyRecorder {
 				const key = this.getUniqueID(mutation.target) + "|" + this.currentTime;
 		
 				if (mutation.type === 'childList') {
-					// Handle added nodes
-					if (mutation.addedNodes.length > 0) {
-						const addKey = key + "|add";
-						if (!mutationMap.has(addKey) || lastEventType === 'remove') {
-							mutationMap.set(addKey, {
-								target: mutation.target,
-								type: mutation.type,
-								attributeName: mutation.attributeName,
-								oldValue: mutation.oldValue,
-								removedNodes: [],
-								addedNodes: [],
-							});
-						}
-						const groupedMutation = mutationMap.get(addKey);
-						mutation.addedNodes.forEach(node => {
-							const index = Array.from(mutation.target.childNodes).indexOf(node);
-							if (node.nodeType === Node.TEXT_NODE) {
-								groupedMutation.addedNodes.push({
-									nodeType: node.nodeType,
-									textContent: node.textContent,
-									index
-								});
-							} else {
-								node.index = index;
-								this.convertRelativeURLs(node);
-								groupedMutation.addedNodes.push(node);
-							}
+					if (!mutationMap.has(key)) {
+						mutationMap.set(key, {
+							target: mutation.target,
+							type: mutation.type,
+							nodes: []
 						});
-						lastEventType = 'add';
 					}
-		
-					// Handle removed nodes
-					if (mutation.removedNodes.length > 0) {
-						const removeKey = key + "|remove";
-						if (!mutationMap.has(removeKey) || lastEventType === 'add') {
-							mutationMap.set(removeKey, {
-								target: mutation.target,
-								type: mutation.type,
-								attributeName: mutation.attributeName,
-								oldValue: mutation.oldValue,
-								removedNodes: [],
-								addedNodes: [],
-							});
-						}
-						const groupedMutation = mutationMap.get(removeKey);
-						mutation.removedNodes.forEach(node => {
-							let index = Array.from(mutation.target.childNodes).indexOf(node);
-							if (index === -1) {
-								// Node has already been removed, find its previous index
-								const previousSibling = node.previousSibling;
-								if (previousSibling) {
-									const previousIndex = Array.from(mutation.target.childNodes).indexOf(previousSibling);
-									index = previousIndex + 1;
-								} else {
-									index = 0; // Node was the first child
-								}
-							}
 
-							if (node.nodeType === Node.TEXT_NODE) {
-								groupedMutation.removedNodes.push({
-									nodeType: node.nodeType,
-									textContent: node.textContent,
-									index
-								});
+					const groupedMutation = mutationMap.get(key);
+					mutation.removedNodes.forEach(node => {
+						let index = Array.from(mutation.target.childNodes).indexOf(node);
+						if (index === -1) {
+							// Node has already been removed, find its previous index
+							const previousSibling = node.previousSibling;
+							if (previousSibling) {
+								const previousIndex = Array.from(mutation.target.childNodes).indexOf(previousSibling);
+								index = previousIndex + 1;
 							} else {
-								node.index = index;
-								groupedMutation.removedNodes.push(node);
+								index = 0; // Node was the first child
 							}
-						});
-						lastEventType = 'remove';
-					}
+						}
+
+						if (node.nodeType === Node.TEXT_NODE) {
+							groupedMutation.nodes.push({
+								nodeType: node.nodeType,
+								textContent: node.textContent,
+								index,
+								action: 0
+							});
+						} else {
+							node.index = index;
+							groupedMutation.nodes.push(node);
+						}
+					});
+
+					mutation.addedNodes.forEach(node => {
+						const index = Array.from(mutation.target.childNodes).indexOf(node);
+						if (node.nodeType === Node.TEXT_NODE) {
+							groupedMutation.nodes.push({
+								nodeType: node.nodeType,
+								textContent: node.textContent,
+								index,
+								action: 1
+							});
+						} else {
+							node.index = index;
+							this.convertRelativeURLs(node);
+							groupedMutation.nodes.push(node);
+						}
+					});
+
+					// Handle removed nodes
+					// if (mutation.removedNodes.length > 0) {
+					// 	const removeKey = key + "|remove";
+					// 	if (!mutationMap.has(removeKey) || lastEventType === 'add') {
+					// 		mutationMap.set(removeKey, {
+					// 			target: mutation.target,
+					// 			type: mutation.type,
+					// 			attributeName: mutation.attributeName,
+					// 			oldValue: mutation.oldValue,
+					// 			removedNodes: [],
+					// 			addedNodes: [],
+					// 		});
+					// 	}
+					// 	const groupedMutation = mutationMap.get(removeKey);
+					// 	mutation.removedNodes.forEach(node => {
+					// 		let index = Array.from(mutation.target.childNodes).indexOf(node);
+					// 		if (index === -1) {
+					// 			// Node has already been removed, find its previous index
+					// 			const previousSibling = node.previousSibling;
+					// 			if (previousSibling) {
+					// 				const previousIndex = Array.from(mutation.target.childNodes).indexOf(previousSibling);
+					// 				index = previousIndex + 1;
+					// 			} else {
+					// 				index = 0; // Node was the first child
+					// 			}
+					// 		}
+
+					// 		if (node.nodeType === Node.TEXT_NODE) {
+					// 			groupedMutation.removedNodes.push({
+					// 				nodeType: node.nodeType,
+					// 				textContent: node.textContent,
+					// 				index
+					// 			});
+					// 		} else {
+					// 			node.index = index;
+					// 			groupedMutation.removedNodes.push(node);
+					// 		}
+					// 	});
+					// 	lastEventType = 'remove';
+					// }
+					
+					// // Handle added nodes
+					// if (mutation.addedNodes.length > 0) {
+					// 	const addKey = key + "|add";
+					// 	if (!mutationMap.has(addKey) || lastEventType === 'remove') {
+					// 		mutationMap.set(addKey, {
+					// 			target: mutation.target,
+					// 			type: mutation.type,
+					// 			attributeName: mutation.attributeName,
+					// 			oldValue: mutation.oldValue,
+					// 			removedNodes: [],
+					// 			addedNodes: [],
+					// 		});
+					// 	}
+					// 	const groupedMutation = mutationMap.get(addKey);
+					// 	mutation.addedNodes.forEach(node => {
+					// 		const index = Array.from(mutation.target.childNodes).indexOf(node);
+					// 		if (node.nodeType === Node.TEXT_NODE) {
+					// 			groupedMutation.addedNodes.push({
+					// 				nodeType: node.nodeType,
+					// 				textContent: node.textContent,
+					// 				index
+					// 			});
+					// 		} else {
+					// 			node.index = index;
+					// 			this.convertRelativeURLs(node);
+					// 			groupedMutation.addedNodes.push(node);
+					// 		}
+					// 	});
+					// 	lastEventType = 'add';
+					//}
 				} else if (mutation.type === 'attributes' && mutation.attributeName !== 'easy-id') {
 					// Handle attribute changes
 					if (!mutationMap.has(key)) {
@@ -297,8 +348,7 @@ class EasyRecorder {
 							attributeName: mutation.attributeName,
 							oldValue: mutation.oldValue,
 							newValue: mutation.target.getAttribute(mutation.attributeName), // Capture new value
-							removedNodes: [],
-							addedNodes: [],
+							nodes: []
 						});
 					}
 					const groupedMutation = mutationMap.get(key);
@@ -310,8 +360,7 @@ class EasyRecorder {
 							type: mutation.type,
 							attributeName: mutation.attributeName,
 							oldValue: mutation.oldValue,
-							removedNodes: [],
-							addedNodes: [],
+							nodes: []
 						});
 					}
 					const groupedMutation = mutationMap.get(key);

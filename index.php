@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link rel="stylesheet" href="/styles/test.css">
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 		<script src="/scripts/EasyEvents.js?v=<?php echo filemtime('scripts/EasyEvents.js'); ?>"></script>
 		<script src="/scripts/EasyCompress.js?v=<?php echo filemtime('scripts/EasyCompress.js'); ?>"></script>
@@ -33,36 +32,13 @@
 	</head>
 
 	<body>
-		<input type="text">
-		<input type="text" id="important-input">
-		<input type="text">
-		<?php for ($i = 0; $i < 5; $i++) { ?>
-			<p class="hello-worlds">Hello world <?=$i?></p>
-		<?php } ?>
-
-		<button type="button" class="btn btn-primary" id="my-button">Primary</button>
+		<span id="text-output"></span>
+		<button type="button" class="btn btn-primary" id="button-1">Hello World</button>
+		<button type="button" class="btn btn-success" id="button-2">Goodbye World</button>
 
 		<script>
-			$(function(){
-				setInterval(() => {
-					$("#my-button").toggleClass("btn-primary btn-danger");
-				}, 500);
-
-				$("#my-button").on("click", function(){
-					$(".hello-worlds").remove();
-					$("body").append("<p class='hello-worlds'><span>Bringing Back the Worlds</span></p>");
-
-					$("p").addClass("text-danger");
-					setTimeout(() => {
-						$("body").append('<img src="/images/test.jpg">');
-						$("p").prepend("<span>Prepending</span>");
-						setTimeout(() => {
-							$("p").append("<span>Appending</span>");
-							$("p").removeClass("text-danger").addClass("text-success");
-						}, 3000);
-					}, 3000);
-				});
-			});
+			$('#button-1').click(() => $('#text-output').html('Hello World'));
+			$('#button-2').click(() => $('#text-output').html('Goodbye World'));
 		</script>
 
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

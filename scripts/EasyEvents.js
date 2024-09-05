@@ -254,31 +254,62 @@ class EasyMutationEvent extends EasyEvent {
 		super("mutation", time);
 		this.type = mutation.type;
 		this.target = getUniqueID == null ? mutation.target : getUniqueID(mutation.target);
-		this.addedNodes = getUniqueID == null ? mutation.addedNodes : Array.from(mutation.addedNodes).map(node => {
-			if (node.nodeType === Node.TEXT_NODE) {
-				return {
-					index: node.index,
-					html: node.textContent,
-					text: true
+		
+		this.nodes = getUniqueID == null ? mutation.nodes : Array.from(mutation.nodes).map(node => {
+			const processed = {};
+			if (node.action === 0) { // Remove node (0)
+				processed.action = 0;
+				processed.index = node.index;
+				processed.html = node.outerHTML || node.textContent;
+				if (node.nodeType === Node.TEXT_NODE) {
+					processed.text = true;
+				} else {
+					processed.id = getUniqueID(node);
 				}
-			} else {
-				const clone = node.cloneNode(true);
-				const uniqueID = getUniqueID(node);
-				clone.setAttribute("easy-id", uniqueID);
-				this.setUniqueIDsForChildren(node, clone, getUniqueID);
-				return {
-					id: uniqueID,
-					index: node.index,
-					html: clone.outerHTML
+			} else { // Add node (1)
+				processed.action = 1;
+				if (node.nodeType === Node.TEXT_NODE) {
+					processed.index = node.index;
+					processed.html = node.textContent;
+					processed.text = true;
+				} else {
+					const clone = node.cloneNode(true);
+					const uniqueID = getUniqueID(node);
+					clone.setAttribute("easy-id", uniqueID);
+					this.setUniqueIDsForChildren(node, clone, getUniqueID);
+					processed.id = uniqueID;
+					processed.index = node.index;
+					processed.html = clone.outerHTML;
 				}
 			}
+			return processed;
 		});
-		this.removedNodes = getUniqueID == null ? mutation.removedNodes : Array.from(mutation.removedNodes).map(node => ({
-			id: node.nodeType === Node.TEXT_NODE ? undefined : getUniqueID(node),
-			index: node.index,
-			html: node.outerHTML || node.textContent,
-			text: node.nodeType === Node.TEXT_NODE ? true : undefined,
-		}));
+		
+		// this.addedNodes = getUniqueID == null ? mutation.addedNodes : Array.from(mutation.addedNodes).map(node => {
+		// 	if (node.nodeType === Node.TEXT_NODE) {
+		// 		return {
+		// 			index: node.index,
+		// 			html: node.textContent,
+		// 			text: true
+		// 		}
+		// 	} else {
+		// 		const clone = node.cloneNode(true);
+		// 		const uniqueID = getUniqueID(node);
+		// 		clone.setAttribute("easy-id", uniqueID);
+		// 		this.setUniqueIDsForChildren(node, clone, getUniqueID);
+		// 		return {
+		// 			id: uniqueID,
+		// 			index: node.index,
+		// 			html: clone.outerHTML
+		// 		}
+		// 	}
+		// });
+		// this.removedNodes = getUniqueID == null ? mutation.removedNodes : Array.from(mutation.removedNodes).map(node => ({
+		// 	id: node.nodeType === Node.TEXT_NODE ? undefined : getUniqueID(node),
+		// 	index: node.index,
+		// 	html: node.outerHTML || node.textContent,
+		// 	text: node.nodeType === Node.TEXT_NODE ? true : undefined,
+		// }));
 		this.attributeName = mutation.attributeName;
 		this.newValue = mutation.newValue;
 		this.oldValue = mutation.oldValue;
@@ -303,8 +334,17 @@ class EasyMutationEvent extends EasyEvent {
 		const mutation = {
 			type: data.ty,
 			target: data.ta,
-			addedNodes: data.a.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
-			removedNodes: data.r.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
+			nodes: data.m.map(node => {
+				const processed = {};
+				processed.action = node.a;
+				processed.index = node.ix;
+				processed.html = node.h;
+				if (node.i) processed.id = node.i;
+				if (node.t) processed.text = node.t;
+				return processed;
+			}),
+			//addedNodes: data.a.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
+			//removedNodes: data.r.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
 			attributeName: data.at,
 			newValue: data.n,
 			oldValue: data.o
@@ -317,8 +357,9 @@ class EasyMutationEvent extends EasyEvent {
 			...super.toJSON(),
 			type: this.type,
 			target: this.target,
-			addedNodes: this.addedNodes,
-			removedNodes: this.removedNodes,
+			nodes: this.nodes,
+			// addedNodes: this.addedNodes,
+			// removedNodes: this.removedNodes,
 			attributeName: this.attributeName,
 			newValue: this.newValue,
 			oldValue: this.oldValue
@@ -331,8 +372,17 @@ class EasyMutationEvent extends EasyEvent {
 			e: 4,
 			ty: this.type,
 			ta: this.target,
-			a: this.addedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
-            r: this.removedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
+			m: this.nodes.map(node => {
+				const processed = {};
+				processed.a = node.action;
+				processed.ix = node.index;
+				processed.h = node.html;
+				if (node.id) processed.i = node.id;
+				if (node.text) processed.t = node.text;
+				return processed;
+			}),
+			// a: this.addedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
+            // r: this.removedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
 			at: this.attributeName,
 			n: this.newValue,
 			o: this.oldValue
