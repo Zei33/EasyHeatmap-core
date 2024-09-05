@@ -231,43 +231,6 @@ class EasyReplayer {
 						}
 					}
 				});
-
-                // event.addedNodes.forEach(nodeData => {
-				// 	if (nodeData.text) {
-				// 		let node = document.createTextNode(nodeData.html);
-				// 		// Insert the text node at the correct position
-				// 		if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
-				// 			target.insertBefore(node, target.childNodes[nodeData.index]);
-				// 		} else {
-				// 			target.appendChild(node);
-				// 		}
-				// 	} else {
-				// 		let node = parser.parseFromString(nodeData.html, 'text/html').body.firstChild;
-				// 		this.idMap.set(String(nodeData.id), node);
-				// 		// Insert the node at the correct position
-				// 		if (nodeData.index !== undefined && nodeData.index < target.childNodes.length) {
-				// 			target.insertBefore(node, target.childNodes[nodeData.index]);
-				// 		} else {
-				// 			target.appendChild(node);
-				// 		}
-				// 	}
-				// });
-
-				// event.removedNodes.forEach(nodeData => {
-				// 	if (nodeData.text === true) {
-				// 		// Find and remove the text node at the specified index
-				// 		const textNode = target.childNodes[nodeData.index];
-				// 		if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.html) {
-				// 			textNode.remove();
-				// 		}
-				// 	} else {
-				// 		const existingNode = this.idMap.get(String(nodeData.id));
-				// 		if (existingNode) {
-				// 			existingNode.remove();
-				// 			//this.idMap.delete(String(nodeData.id));
-				// 		}
-				// 	}
-				// });
                 break;
             case 'attributes':
                 if (event.newValue !== null) {

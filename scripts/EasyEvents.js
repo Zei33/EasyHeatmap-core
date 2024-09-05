@@ -284,32 +284,6 @@ class EasyMutationEvent extends EasyEvent {
 			}
 			return processed;
 		});
-		
-		// this.addedNodes = getUniqueID == null ? mutation.addedNodes : Array.from(mutation.addedNodes).map(node => {
-		// 	if (node.nodeType === Node.TEXT_NODE) {
-		// 		return {
-		// 			index: node.index,
-		// 			html: node.textContent,
-		// 			text: true
-		// 		}
-		// 	} else {
-		// 		const clone = node.cloneNode(true);
-		// 		const uniqueID = getUniqueID(node);
-		// 		clone.setAttribute("easy-id", uniqueID);
-		// 		this.setUniqueIDsForChildren(node, clone, getUniqueID);
-		// 		return {
-		// 			id: uniqueID,
-		// 			index: node.index,
-		// 			html: clone.outerHTML
-		// 		}
-		// 	}
-		// });
-		// this.removedNodes = getUniqueID == null ? mutation.removedNodes : Array.from(mutation.removedNodes).map(node => ({
-		// 	id: node.nodeType === Node.TEXT_NODE ? undefined : getUniqueID(node),
-		// 	index: node.index,
-		// 	html: node.outerHTML || node.textContent,
-		// 	text: node.nodeType === Node.TEXT_NODE ? true : undefined,
-		// }));
 		this.attributeName = mutation.attributeName;
 		this.newValue = mutation.newValue;
 		this.oldValue = mutation.oldValue;
@@ -343,8 +317,6 @@ class EasyMutationEvent extends EasyEvent {
 				if (node.t) processed.text = node.t;
 				return processed;
 			}),
-			//addedNodes: data.a.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
-			//removedNodes: data.r.map(node => ({ id: node.i, index: node.ix, html: node.h, text: node.t })),
 			attributeName: data.at,
 			newValue: data.n,
 			oldValue: data.o
@@ -358,8 +330,6 @@ class EasyMutationEvent extends EasyEvent {
 			type: this.type,
 			target: this.target,
 			nodes: this.nodes,
-			// addedNodes: this.addedNodes,
-			// removedNodes: this.removedNodes,
 			attributeName: this.attributeName,
 			newValue: this.newValue,
 			oldValue: this.oldValue
@@ -381,8 +351,6 @@ class EasyMutationEvent extends EasyEvent {
 				if (node.text) processed.t = node.text;
 				return processed;
 			}),
-			// a: this.addedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
-            // r: this.removedNodes.map(node => ({ i: node.id, ix: node.index, h: node.html, t: node.text })),
 			at: this.attributeName,
 			n: this.newValue,
 			o: this.oldValue
