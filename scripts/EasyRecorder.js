@@ -232,7 +232,6 @@ class EasyRecorder {
 						}
 						const groupedMutation = mutationMap.get(addKey);
 						mutation.addedNodes.forEach(node => {
-							console.log("Adding node");
 							const index = Array.from(mutation.target.childNodes).indexOf(node);
 							if (node.nodeType === Node.TEXT_NODE) {
 								groupedMutation.addedNodes.push({
@@ -264,7 +263,6 @@ class EasyRecorder {
 						}
 						const groupedMutation = mutationMap.get(removeKey);
 						mutation.removedNodes.forEach(node => {
-							console.log("Removing node");
 							let index = Array.from(mutation.target.childNodes).indexOf(node);
 							if (index === -1) {
 								// Node has already been removed, find its previous index
@@ -291,7 +289,6 @@ class EasyRecorder {
 						lastEventType = 'remove';
 					}
 				} else if (mutation.type === 'attributes' && mutation.attributeName !== 'easy-id') {
-					//console.log(`Attribute changed ${mutation.attributeName} from ${mutation.oldValue} to ${mutation.target.getAttribute(mutation.attributeName)}`);
 					// Handle attribute changes
 					if (!mutationMap.has(key)) {
 						mutationMap.set(key, {
@@ -322,14 +319,7 @@ class EasyRecorder {
 			});
 		
 			mutationMap.forEach(groupedMutation => {
-				// groupedMutation.addedNodes.forEach(node => {
-				// 	if (node.nodeType === Node.ELEMENT_NODE) {
-				// 		const uniqueID = this.getUniqueID(node);
-				// 		node.setAttribute("easy-id", uniqueID);
-				// 	}
-				// });
 				const e = new EasyMutationEvent(this.currentTime, groupedMutation, this.getUniqueID.bind(this));
-				
 				this.recording.push(e);
 			});
 		});

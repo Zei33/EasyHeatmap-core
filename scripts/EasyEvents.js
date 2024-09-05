@@ -258,12 +258,14 @@ class EasyMutationEvent extends EasyEvent {
 			if (node.nodeType === Node.TEXT_NODE) {
 				return {
 					index: node.index,
-					html: node.textContent
+					html: node.textContent,
+					text: true
 				}
 			} else {
 				const clone = node.cloneNode(true);
 				const uniqueID = getUniqueID(node);
 				clone.setAttribute("easy-id", uniqueID);
+				this.setUniqueIDsForChildren(node, clone, getUniqueID);
 				return {
 					id: uniqueID,
 					index: node.index,
@@ -280,43 +282,21 @@ class EasyMutationEvent extends EasyEvent {
 		this.attributeName = mutation.attributeName;
 		this.newValue = mutation.newValue;
 		this.oldValue = mutation.oldValue;
-
-		if (getUniqueID != null && mutation.addedNodes.length) {
-			console.log(Array.from(mutation.addedNodes));
-            Array.from(mutation.addedNodes).forEach(node => {
-                this.traverseNodes(node, getUniqueID);
-            });
-        }
 	}
 
-	traverseNodes(node, getUniqueID) {
-		if (!node || !getUniqueID) return;
-		console.log(node);
-		if (node.nodeType === Node.ELEMENT_NODE) {
-			const clone = node.cloneNode(true);
-            const uniqueID = getUniqueID(node);
-			clone.setAttribute("easy-id", uniqueID);
-            this.addedNodes.push({
-                id: uniqueID,
-                index: node.index,
-                html: clone.outerHTML,
-                text: undefined,
-            });
-        } else if (node.nodeType === Node.TEXT_NODE) {
-            this.addedNodes.push({
-                id: undefined,
-                index: node.index,
-                html: node.textContent,
-                text: true,
-            });
-        }
+	setUniqueIDsForChildren(originalNode, clonedNode, getUniqueID) {
+        if (!originalNode || !clonedNode || !getUniqueID) return;
 
-		if (node.childNodes) {
-			Array.from(node.childNodes).forEach(childNode => {
-				this.traverseNodes(childNode, getUniqueID);
-			});
-		}
-	}
+        Array.from(originalNode.childNodes).forEach((childNode, index) => {
+            if (childNode.nodeType === Node.ELEMENT_NODE) {
+                const uniqueID = getUniqueID(childNode); // Get unique ID from the original child node
+                const clonedChildNode = clonedNode.childNodes[index];
+                clonedChildNode.setAttribute("easy-id", uniqueID);
+                // Recursively set unique IDs for the child nodes of this child node
+                this.setUniqueIDsForChildren(childNode, clonedChildNode, getUniqueID);
+            }
+        });
+    }
 
 	static parse(data) {
 		const getUniqueID = null

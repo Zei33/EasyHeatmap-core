@@ -11,9 +11,10 @@ class EasyReplayer {
 		this.cursor = null;
 		this.styles = null;
 		this.idMap = new Map();
+		this.debugFrame = -1;
 	}
 
-	load(options, start = false) {
+	async load(options, start = false) {
 		options = {
 			recording: null,
 			styles: null,
@@ -22,20 +23,18 @@ class EasyReplayer {
 			...options
 		};
 
-		this.loadRecording(recording)
-		.then(() => options.styles == null ? null : this.loadStyles(styles))
-		.then(() => options.elements == null ? null : this.loadElements(elements))
-		.then(() => options.scripts == null ? null : this.loadScripts(scripts))
-		.then(() => {
-			if (start) this.start();
-		});
+		if (options.elements != null) await this.loadElements(elements);
+		if (options.styles != null) await this.loadStyles(styles);
+		if (options.scripts != null) await this.loadScripts(scripts);
+		await this.loadRecording(recording);
+		if (start) this.start();
 	}
 
 	async loadRecording(data) {
 		const decodedData = await EasyDecompress.decompress(data);
 		
 		const raw = JSON.parse(decodedData);
-		this.recording = this.parse(raw);console.log(this.recording);
+		this.recording = this.parse(raw);
 		
 		return this;
 	}
@@ -92,18 +91,28 @@ class EasyReplayer {
 		}
 
 		const raw = await EasyDecompress.decompress(data);
-		const elements = JSON.parse(raw);console.log(elements);
+		const elements = JSON.parse(raw);
 
 		const parser = new DOMParser();
 		elements.forEach(elementHTML => {
 			const doc = parser.parseFromString(elementHTML, "text/html");
 			const element = doc.body.firstChild;
-			const id = element.getAttribute("easy-id");
-			if (id !== null) this.idMap.set(id, element);
-			document.body.appendChild(element);
+			if (element) {
+				this.registerElements(element);
+				document.body.appendChild(element);
+			}
 		});
 
 		return this;
+	}
+
+	registerElements(element) {
+		const id = element.getAttribute("easy-id");
+		if (id !== null) this.idMap.set(id, element);
+
+		Array.from(element.children).forEach(child => {
+			this.registerElements(child);
+		});
 	}
 
 	parse(raw) {
@@ -131,21 +140,22 @@ class EasyReplayer {
 
 	triggerNextEvent(event) {
 		setTimeout(() => {
-			this.replayEvent(event);
+			if (event.time === this.debugFrame) {
+				console.log(event.time);
+				console.log(event);
+				this.replayEvent(event, true);
+			} else {
+				this.replayEvent(event, false);
+			}
 			this.replayTime = event.time;
 			this.currentEvent++;
-			if (this.currentEvent > 173) {
-				console.log(this.recording[this.currentEvent]);
-				console.log("Stopping replay");
-				return;
-			}
 			if (this.currentEvent < this.recording.length) {
 				this.triggerNextEvent(this.recording[this.currentEvent]);
 			}
 		}, event.time - this.replayTime);
 	}
 
-	replayEvent(event) {
+	replayEvent(event, debug = false) {
 		if (event.event === "mouse") {
 			this.replayMouseMoveEvent(event);
 		} else if (event.event === "click") {
@@ -155,7 +165,7 @@ class EasyReplayer {
 		} else if (event.event === "scroll") {
 			window.scrollTo(event.x, event.y);
 		} else if (event.event === "mutation") {
-			this.replayMutationEvent(event);
+			this.replayMutationEvent(event, debug);
 		}
 	}
 
@@ -184,7 +194,23 @@ class EasyReplayer {
 		EasyKeyboard.typeKey(event);
 	}
 
-	replayMutationEvent(event) {
+	replayMutationEvent(event, debug = false) {
+		if (debug) {
+			console.log(`Replaying mutation event at ${event.time}`);
+			if (event.type === "childList") {
+				console.log(`Changing children for target:`);
+				console.log(event.target);
+				console.log(`Target matched:`);
+				const matchedTarget = this.idMap.get(String(event.target));
+				console.log(matchedTarget);
+				if (!matchedTarget) console.log(this.idMap);
+				console.log(`Removed nodes:`);
+				console.log(event.removedNodes);
+				console.log(`Added nodes:`);
+				console.log(event.addedNodes);
+			}
+		}
+
 		const parser = new DOMParser();
         const target = this.idMap.get(String(event.target));
 
@@ -192,28 +218,7 @@ class EasyReplayer {
 
         switch (event.type) {
             case 'childList':
-				console.log(`Changing children for target:`);
-				console.log(target);
-                event.removedNodes.forEach(nodeData => {
-					console.log(`Removing node:`);
-					console.log(nodeData);
-					if (nodeData.nodeType === Node.TEXT_NODE) {
-						// Find and remove the text node at the specified index
-						const textNode = target.childNodes[nodeData.index];
-						if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.textContent) {
-							textNode.remove();
-						}
-					} else {
-						const existingNode = this.idMap.get(String(nodeData.id));
-						if (existingNode) {
-							existingNode.remove();
-							//this.idMap.delete(String(nodeData.id));
-						}
-					}
-				});
                 event.addedNodes.forEach(nodeData => {
-					console.log(`Adding node:`);
-					console.log(nodeData);
 					if (nodeData.text) {
 						let node = document.createTextNode(nodeData.html);
 						// Insert the text node at the correct position
@@ -233,22 +238,31 @@ class EasyReplayer {
 						}
 					}
 				});
+
+				event.removedNodes.forEach(nodeData => {
+					if (nodeData.text === true) {
+						// Find and remove the text node at the specified index
+						const textNode = target.childNodes[nodeData.index];
+						if (textNode && textNode.nodeType === Node.TEXT_NODE && textNode.textContent === nodeData.html) {
+							textNode.remove();
+						}
+					} else {
+						const existingNode = this.idMap.get(String(nodeData.id));
+						if (existingNode) {
+							existingNode.remove();
+							//this.idMap.delete(String(nodeData.id));
+						}
+					}
+				});
                 break;
             case 'attributes':
-				console.log("Changing attribute for target:")
-				console.log(target);
                 if (event.newValue !== null) {
-					console.log(`Setting attribute ${event.attributeName} to ${event.newValue}`);
                     target.setAttribute(event.attributeName, event.newValue);
                 } else {
-					console.log(`Removing attribute ${event.attributeName}`);
                     target.removeAttribute(event.attributeName);
                 }
                 break;
             case 'characterData':
-				console.log("Changing character data for target:");
-				console.log(target);
-				console.log(`Setting text content to ${event.newValue}`);
                 target.textContent = event.oldValue;
                 break;
         }
