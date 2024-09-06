@@ -248,6 +248,7 @@ class EasyRecorder {
 							});
 						} else {
 							node.index = index;
+							node.action = 0;
 							groupedMutation.nodes.push(node);
 						}
 					});
@@ -263,6 +264,7 @@ class EasyRecorder {
 							});
 						} else {
 							node.index = index;
+							node.action = 1;
 							this.convertRelativeURLs(node);
 							groupedMutation.nodes.push(node);
 						}
