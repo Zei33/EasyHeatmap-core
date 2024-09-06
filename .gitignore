@@ -2,3 +2,5 @@ elements.php
 recording.php
 scripts.php
 styles.php
+node_modules
+package-lock.json

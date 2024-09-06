@@ -256,8 +256,6 @@ class EasyMutationEvent extends EasyEvent {
 		this.target = getUniqueID == null ? mutation.target : getUniqueID(mutation.target);
 		
 		this.nodes = getUniqueID == null ? mutation.nodes : Array.from(mutation.nodes).map(node => {
-			console.log(node.action);
-			console.log(node);
 			const processed = {};
 			if (node.action === 0) { // Remove node (0)
 				processed.action = 0;
@@ -289,8 +287,6 @@ class EasyMutationEvent extends EasyEvent {
 		this.attributeName = mutation.attributeName;
 		this.newValue = mutation.newValue;
 		this.oldValue = mutation.oldValue;
-
-		console.log(this);
 	}
 
 	setUniqueIDsForChildren(originalNode, clonedNode, getUniqueID) {

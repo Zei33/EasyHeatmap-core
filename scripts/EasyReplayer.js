@@ -190,13 +190,11 @@ class EasyReplayer {
 	replayMutationEvent(event) {
 		const parser = new DOMParser();
         const target = this.idMap.get(String(event.target));
-		if (event.target == 213) console.log("TIME: " + event.time);
 		if (!target) return;
 
         switch (event.type) {
             case 'childList':
 				event.nodes.forEach(nodeData => {
-					if (event.target == 213) console.log(nodeData);
 					if (nodeData.action === 0) { // Remove node (0)
 						if (nodeData.text === true) {
 							// Find and remove the text node at the specified index
