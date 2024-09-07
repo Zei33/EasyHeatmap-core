@@ -2,9 +2,9 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="/styles/replayer.css">
-		<script src="/scripts/EasyEvents.js?v=<?php echo filemtime('scripts/EasyEvents.js'); ?>"></script>
-		<script src="/scripts/EasyDecompress.js?v=<?php echo filemtime('scripts/EasyDecompress.js'); ?>"></script>
-		<script src="/scripts/EasyReplayer.js?v=<?php echo filemtime('scripts/EasyReplayer.js'); ?>"></script>
+		<script src="/scripts/EasyEvents.js?v=<?php echo filemtime('../scripts/EasyEvents.js'); ?>"></script>
+		<script src="/scripts/EasyDecompress.js?v=<?php echo filemtime('../scripts/EasyDecompress.js'); ?>"></script>
+		<script src="/scripts/EasyReplayer.js?v=<?php echo filemtime('../scripts/EasyReplayer.js'); ?>"></script>
 	</head>
 
 	<body>

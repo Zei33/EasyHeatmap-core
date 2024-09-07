@@ -4,3 +4,4 @@ scripts.php
 styles.php
 node_modules
 package-lock.json
+.env
