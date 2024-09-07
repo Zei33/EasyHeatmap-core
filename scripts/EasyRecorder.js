@@ -9,7 +9,6 @@ class EasyRecorder {
 		this.idCounter = 0;
 		this.idMap = new Map();
 		this.baseURL = window.location.origin;
-		//this.baseURL = "https://online.supaigaleongatha.com.au";
 
 		this.registerEvents();
 	}
@@ -211,7 +210,6 @@ class EasyRecorder {
 	observeMutations() {
 		const observer = new MutationObserver(mutations => {
 			const mutationMap = new Map();
-			let lastEventType = null;
 		
 			mutations.forEach(mutation => {
 				const key = this.getUniqueID(mutation.target) + "|" + this.currentTime;
