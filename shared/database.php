@@ -1,4 +1,6 @@
 <?php
+require_once("environment.php");
+
 /**
  * Class Database
  *
@@ -58,3 +60,4 @@ class Database {
 
 // Create a new Database instance using environment variables
 $database = new Database($env);
+$pdo = $database->connection();

@@ -12,16 +12,10 @@ class EasyDashboard {
         this.appContainer = document.querySelector(containerTag);
         this.contentContainer = this.appContainer.querySelector("#easy-dashboard-content");
         this.navigationContainer = this.appContainer.querySelector("#easy-dashboard-navigation");
+		this.loaderContainer = this.appContainer.querySelector("#easy-dashboard-loader");
         this.bindNavigation();
 
         this.settings = null;
-
-        const params = this.getParams();
-        if (params.p) {
-            this.navigateTo(params.p);
-        } else {
-            this.navigateTo("settings");
-        }
     }
 
     /**
@@ -63,24 +57,13 @@ class EasyDashboard {
      */
     async navigateTo(panel) {
         // Display loading spinner
-        this.contentContainer.innerHTML = `
-            <div class="flex justify-center items-center h-full">
-                <div role="status">
-                    <svg aria-hidden="true" class="inline w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- SVG paths -->
-                    </svg>
-                    <span class="sr-only">Loading...</span>
-                </div>
-            </div>
-        `;
+		this.loaderContainer.classList.remove("hidden");
+        this.contentContainer.classList.add("hidden");
+
         switch(panel) {
             case "settings":
                 this.contentContainer.innerHTML = await this.loadSettingsPanel();
-                if (this.settings === null) {
-                    this.settings = new EasySettings(this);
-                } else {
-                    this.settings.init();
-                }
+                EasyHeatmap.settings.init();
                 this.setParam("p", "settings");
                 break;
             case "database":
@@ -111,7 +94,19 @@ class EasyDashboard {
                 `;
                 break;
         }
+
+		this.loaderContainer.classList.add("hidden");
+        this.contentContainer.classList.remove("hidden");
     }
+
+	initialNavigation() {
+		const params = this.getParams();
+        if (params.p) {
+            this.navigateTo(params.p);
+        } else {
+            this.navigateTo("settings");
+        }
+	}
 
     /**
      * Load the settings panel content.

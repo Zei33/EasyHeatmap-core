@@ -1,4 +1,6 @@
 <?php
+require_once(__DIR__ . "/../../shared/database.php");
+
 /**
  * Class EasyLoc
  *
@@ -45,9 +47,9 @@ class EasyLoc {
      * @param PDO    $pdo    The PDO instance for database access.
      * @param string $prefix The prefix for database tables. Default is 'ehm_'.
      */
-    public function __construct(PDO $pdo, $prefix = 'ehm_') {
+    public function __construct(PDO $pdo, $env) {
         $this->pdo = $pdo;
-        $this->prefix = preg_replace('/[^a-zA-Z0-9_]/', '', $prefix);
+        $this->prefix = preg_replace('/[^a-zA-Z0-9_]/', '', $env->dbTablePrefix);
 
         $this->getLanguage();
         $this->loadLanguage();
@@ -59,7 +61,7 @@ class EasyLoc {
      * @return string The current language code.
      */
     public function getLanguage() {
-        $query = $this->pdo->prepare("SELECT value FROM {$this->prefix}settings WHERE key = 'language'");
+        $query = $this->pdo->prepare("SELECT `value` FROM {$this->prefix}settings WHERE `key` = 'language'");
         $query->execute();
         $this->language = $query->fetchColumn();
         return $this->language;
@@ -107,3 +109,5 @@ class EasyLoc {
         echo $this->localisations[$key] ?? $key;
     }
 }
+
+$EL = new EasyLoc($pdo, $env);

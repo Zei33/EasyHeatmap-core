@@ -1,6 +1,5 @@
 <?php
     // Include necessary files for environment settings and database connection
-    require_once("../shared/environment.php");
     require_once("../shared/database.php");
     require("EasySetup.php");
 
@@ -29,7 +28,6 @@
     echo "Table prefix: {$env->dbTablePrefix}\n";
 
     // Establish a database connection and initialize the EasySetup class
-    $pdo = $database->connection();
     $setup = new EasySetup($pdo, $env->dbTablePrefix);
 
     // If the 'drop' option is set, drop existing tables

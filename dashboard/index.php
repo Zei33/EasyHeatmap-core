@@ -1,19 +1,20 @@
 <?php 
-	require_once("../shared/environment.php");
-	require_once("../shared/database.php");
-	require("classes/EasyLoc.php");
-	$pdo = $database->connection();
-	$EL = new EasyLoc($pdo, $env->dbTablePrefix);
+	require_once("classes/EasyLoc.php");
+	require_once("classes/EasySettings.php");
 ?>
 <!DOCTYPE html>
 <html class="dark h-full bg-black">
 	<head>
 		<link rel="stylesheet" href="/styles/processed/dashboard.css">
-		<script src="/scripts/dashboard/EasySettings.js?v=<?php echo filemtime('../scripts/dashboard/EasySettings.js'); ?>"></script>
-		<script src="/scripts/dashboard/EasyDashboard.js?v=<?php echo filemtime('../scripts/dashboard/EasyDashboard.js'); ?>"></script>
-		<script src="/scripts/dashboard/EasyLoc.js?v=<?php echo filemtime('../scripts/dashboard/EasyLoc.js'); ?>"></script>
-		<?php require("localisation-data.php"); ?>
-		<?php require("settings-data.php"); ?>
+		<script>
+			window.EasyHeatmap = {};
+			window.EasyHeatmap.API = "/dashboard/api";
+		</script>
+		<script src="/dashboard/scripts/EasySettings.js?v=<?php echo filemtime('../dashboard/scripts/EasySettings.js'); ?>"></script>
+		<?php require("dynamic/settings-data.php"); ?>
+		<script src="/dashboard/scripts/EasyDashboard.js?v=<?php echo filemtime('../dashboard/scripts/EasyDashboard.js'); ?>"></script>
+		<script src="/dashboard/scripts/EasyLoc.js?v=<?php echo filemtime('../dashboard/scripts/EasyLoc.js'); ?>"></script>
+		<?php require("dynamic/localisation-data.php"); ?>
 	</head>
 
 	<body class="h-full">
@@ -22,9 +23,10 @@
 			<?php require("side-bar.php"); ?>
 			<?php require("main-content.php"); ?>
 		</easy-dashboard>
-
 		<script>
-			const dashboard = new EasyDashboard("/dashboard", "easy-dashboard");
+			window.EasyHeatmap.dashboard = new EasyDashboard("/dashboard", "easy-dashboard");
+			window.EasyHeatmap.settings = new EasySettings();
+			window.EasyHeatmap.dashboard.initialNavigation();
 		</script>
 	</body>
 </html>

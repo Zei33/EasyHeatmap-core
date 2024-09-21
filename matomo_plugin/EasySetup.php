@@ -79,21 +79,27 @@ class EasySetup {
         $stmt = $this->pdo->prepare($query);
 
         $data = [
-            ['key' => 'breakpoint_preset', 'value' => 'tailwind', 'category' => 'settings', 'description' => 'Which preset is being used for the settings menu.'],
-            ['key' => 'capture_keyboard', 'value' => '1', 'category' => 'record', 'description' => 'Capture keyboard interactions during recording.'],
-            ['key' => 'current_breakpoint_version', 'value' => '0', 'category' => 'heatmap', 'description' => 'What settings should heatmaps currently use when recording.'],
-            ['key' => 'custom_base_url', 'value' => NULL, 'category' => 'record', 'description' => 'Override page URL when rewriting relative URLs.'],
-            ['key' => 'element_path', 'value' => './data/elements', 'category' => 'settings', 'description' => 'Where elements should be stored.'],
-            ['key' => 'hard_record_external', 'value' => '0', 'category' => 'record', 'description' => 'Record external resources entirely instead of using remote links.'],
-            ['key' => 'heatmap_resolution', 'value' => '1', 'category' => 'heatmap', 'description' => 'Hours that heatmap data will be grouped into.'],
-            ['key' => 'ignore_class', 'value' => NULL, 'category' => 'record', 'description' => 'Do not record key strokes while an element with this class is selected.'],
-            ['key' => 'mouse_frequency', 'value' => '10', 'category' => 'record', 'description' => 'Time in milliseconds between each mouse position recording.'],
-            ['key' => 'mouse_precision', 'value' => '4', 'category' => 'heatmap', 'description' => 'Pixel size of grid spaces that mouse coordinates are recorded in.'],
-            ['key' => 'recording_path', 'value' => './data/recordings', 'category' => 'settings', 'description' => 'Where recordings should be stored.'],
-            ['key' => 'scripts_path', 'value' => './data/scripts', 'category' => 'settings', 'description' => 'Where scripts should be stored.'],
-            ['key' => 'styles_path', 'value' => './data/styles', 'category' => 'settings', 'description' => 'Where styles should be stored.'],
-            ['key' => 'language', 'value' => 'en', 'category' => 'settings', 'description' => 'Which localisation the dashboard should use.']
-        ];
+			// Settings category
+			['key' => 'breakpoint_preset',      'value' => 'tailwind',          'category' => 'settings', 'description' => 'Which preset is being used for the settings menu.'],
+			['key' => 'element_path',           'value' => './data/elements',   'category' => 'settings', 'description' => 'Where elements should be stored.'],
+			['key' => 'recording_path',         'value' => './data/recordings', 'category' => 'settings', 'description' => 'Where recordings should be stored.'],
+			['key' => 'scripts_path',           'value' => './data/scripts',    'category' => 'settings', 'description' => 'Where scripts should be stored.'],
+			['key' => 'styles_path',            'value' => './data/styles',     'category' => 'settings', 'description' => 'Where styles should be stored.'],
+			['key' => 'language',               'value' => 'en',                'category' => 'settings', 'description' => 'Which localisation the dashboard should use.'],
+			
+			// Record category
+			['key' => 'capture_keyboard',       'value' => '1',                 'category' => 'record',   'description' => 'Capture keyboard interactions during recording.'],
+			['key' => 'custom_base_url',        'value' => NULL,                'category' => 'record',   'description' => 'Override page URL when rewriting relative URLs.'],
+			['key' => 'hard_record_external',   'value' => '0',                 'category' => 'record',   'description' => 'Record external resources entirely instead of using remote links.'],
+			['key' => 'ignore_class',           'value' => NULL,                'category' => 'record',   'description' => 'Do not record key strokes while an element with this class is selected.'],
+			['key' => 'mouse_frequency',        'value' => '10',                'category' => 'record',   'description' => 'Time in milliseconds between each mouse position recording.'],
+			['key' => 'recording_strategy',     'value' => 'url',               'category' => 'record',   'description' => 'How recordings should be triggered.'],
+			
+			// Heatmap category
+			['key' => 'current_breakpoint_version', 'value' => '0',             'category' => 'heatmap',  'description' => 'What settings should heatmaps currently use when recording.'],
+			['key' => 'heatmap_resolution',     'value' => '1',                 'category' => 'heatmap',  'description' => 'Hours that heatmap data will be grouped into.'],
+			['key' => 'mouse_precision',        'value' => '4',                 'category' => 'heatmap',  'description' => 'Pixel size of grid spaces that mouse coordinates are recorded in.'],
+		];
 
         foreach ($data as $row) {
             $stmt->execute($row);
