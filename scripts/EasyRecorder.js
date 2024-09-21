@@ -64,7 +64,7 @@ class EasyRecorder {
      */
     async scripts() {
         let data = [];
-        const ignoreElements = /EasyRecorder|EasyCompress|EasyEvent|matomo|Matomo|gtag|clarity/;
+        const ignoreElements = /EasyRecorder|EasyCompress|EasyEvent|ehmA|ehmB|ehmC|matomo|Matomo|gtag|clarity/;
         // Loop through both <head> (m=0) and <body> (m=1)
         for (let m = 0; m <= 1; m++) {
             const masterElement = m ? document.body : document.head;
