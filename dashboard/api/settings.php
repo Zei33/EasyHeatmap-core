@@ -12,10 +12,8 @@ if ($contentType === "application/json") {
     }
 }
 
-error_log(json_encode($_POST));
 foreach ($_POST as $key => $value) {
-	error_log("Setting $key to $value");
 	$ES->setSetting($key, $value);
 }
 
-echo json_encode($ES->getSettings());
+echo json_encode($ES->getSettings(true));

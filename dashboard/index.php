@@ -10,10 +10,10 @@
 			window.EasyHeatmap = {};
 			window.EasyHeatmap.API = "/dashboard/api";
 		</script>
-		<script src="/dashboard/scripts/EasySettings.js?v=<?php echo filemtime('../dashboard/scripts/EasySettings.js'); ?>"></script>
+		<script src="/dashboard/scripts/EasySettings.js?v=<?php echo filemtime('./scripts/EasySettings.js'); ?>"></script>
 		<?php require("dynamic/settings-data.php"); ?>
-		<script src="/dashboard/scripts/EasyDashboard.js?v=<?php echo filemtime('../dashboard/scripts/EasyDashboard.js'); ?>"></script>
-		<script src="/dashboard/scripts/EasyLoc.js?v=<?php echo filemtime('../dashboard/scripts/EasyLoc.js'); ?>"></script>
+		<script src="/dashboard/scripts/EasyDashboard.js?v=<?php echo filemtime('./scripts/EasyDashboard.js'); ?>"></script>
+		<script src="/dashboard/scripts/EasyLoc.js?v=<?php echo filemtime('./scripts/EasyLoc.js'); ?>"></script>
 		<?php require("dynamic/localisation-data.php"); ?>
 	</head>
 

@@ -105,8 +105,16 @@ class EasySettings {
 			console.log(key, ((settings[key] === null || !settings[key].toString().length) ? null : settings[key].toString()), EasyHeatmap.ES[key]);
 			return ((settings[key] === null || !settings[key].toString().length) ? null : settings[key].toString()) !== EasyHeatmap.ES[key]
 		});
-		console.log(changed);
-		return changed.length ? changed.map(x => settings[x]) : false;
+		
+		if (changed.length) {
+			const payload = {};
+			for (const key of changed) {
+				payload[key] = settings[key];
+			}
+			return payload;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -149,7 +157,7 @@ class EasySettings {
 
 			if (response.ok) {
 				const data = await response.json();
-				EasyHeatmap.ES = data.data;
+				EasyHeatmap.ES = data;
 				EasyHeatmap.dashboard.appContainer.querySelector('#save-button').classList.add('hidden');
 				EasyHeatmap.dashboard.appContainer.querySelector('#disabled-save-button').classList.remove('hidden');
 			}
@@ -171,6 +179,7 @@ class EasySettings {
             } else {
                 customBaseUrlContainer.classList.add('hidden');
 				this.settingsContainer.querySelector('#custom-base-url').value = "";
+				this.settingsContainer.querySelector('#custom-base-url').dispatchEvent(new Event('input'));
             }
         });
     }

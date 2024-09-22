@@ -56,7 +56,7 @@ class EasySettings {
 		$query = $this->pdo->prepare("UPDATE {$this->prefix}settings SET `value` = :value WHERE `key` = :key");
 		$query->execute([
 			":key" => $key,
-			":value" => empty($value) ? null : $value
+			":value" => strlen($value) ? $value : null
 		]);
 		$this->settings[$key] = $value;
 
