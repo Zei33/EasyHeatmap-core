@@ -1,5 +1,5 @@
 <?php 
-require_once(__DIR__ . "/../database.php");
+require_once(__DIR__ . "/../database.php"); // Require since we declare $ES in this file.
 /**
  * Class EasySettings
  * Handles settings management.
