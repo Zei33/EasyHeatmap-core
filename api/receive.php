@@ -33,9 +33,9 @@ if (isset($_GET["s"])) {
 
 $content = trim(file_get_contents("php://input"));
 
-$unprocessed_dir = $ES->getSetting("unprocessed_path", "../data/unprocessed");
-$dir = rtrim($unprocessed_dir, "/") . "/" . $_GET["s"];
-$path = $dir . "/" . time() . ".gz";
+$base = $ES->getSetting("data_directory", "/var/www/ehm-data");
+$dir = rtrim($base, "/") . "/unprocessed" . $_GET["s"];
+$path = $dir . "/" . time() . ".ehm";
 
 if (!is_dir($dir)) {
 	mkdir($dir, 0777, true);
