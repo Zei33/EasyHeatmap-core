@@ -9,13 +9,84 @@ class EasyRecorder {
      */
     constructor() {
         this.startTime = Date.now();
+		this.paused = true;
         this.recording = [];
+		this.coreData = {
+			st: null,
+			sc: null,
+			el: null
+		};
+		this.initial = true; // Whether the first chunk of the recording has been sent.
         this.idCounter = 0;
         this.idMap = new Map();
         this.baseURL = window.location.origin;
+		this.chunkLoop = null;
+
+		this.code = null; // The code for the current recording.
+		this.sessionID = ""; // The session ID for the current recording.
 
         this.registerEvents();
     }
+
+	/**
+	 * Sets the session ID cookie to a random string.
+	 */
+	startSession() {
+		const length = 20; 
+		const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		for (let i = 0; i < length; i++) {
+			this.sessionID += characters.charAt(Math.floor(Math.random() * characters.length));
+		}
+		
+		document.cookie = `ehm_ses=${this.sessionID}; path=/`;
+	}
+
+	/**
+	 * Gets the session ID from the cookie.
+	 * @returns {string} The session ID.
+	 */
+	get session() {
+		const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(`ehm_ses=`)) {
+                return cookie.substring(8);
+            }
+        }
+        return null;
+	}
+
+	/**
+	 * Starts a new recording.
+	 * 
+	 * @param {string} code - The code for the recording if using custom code recording strategy.
+	 */
+	static async start(code = null) {
+		if (EHM.r.session === null) EHM.r.startSession();
+		EHM.r.paused = true;
+		EHM.r.init(code);
+	}
+
+	async init(code) {
+		// On page load core data is automatically collected in the DOMContentLoaded event.
+		const refreshCore = this.code !== null;
+
+		if (code === null) {
+			if (EHM.rs === "url") {
+				this.code = window.location.pathname;
+			} else if (EHM.rs === "url-query") {
+				this.code = window.location.pathname + window.location.search;
+			}
+		} else {
+			this.code = code;
+		}
+
+		if (refreshCore) await this.retrieveCore();
+		this.recording = [];
+		this.startTime = Date.now();
+		this.startChunkLoop();
+		this.paused = false;
+	}
 
     /**
      * Retrieves the compressed recording data.
@@ -25,6 +96,50 @@ class EasyRecorder {
         const data = JSON.stringify(this.recording.map(x => x.min));
         return EasyCompress.compress(data);
     }
+
+	/**
+	 * Sends the current chunk of recording data to the server on a loop.
+	 */
+	startChunkLoop() {
+		clearInterval(this.chunkLoop);
+		this.chunkLoop = setInterval(() => {
+			if (!this.paused) this.sendChunk();
+		}, EHM.ct * 1000);
+	}
+
+	/**
+	 * Sends a chunk of recording data to the server.
+	 */
+	async sendChunk() {
+		let data = {
+			u: this.code,
+			s: this.startTime,
+			t: this.currentTime,
+			d: await this.data(),
+		}
+		
+		if (this.initial) data.c = this.coreData; // Only attach core data to the first chunk.
+
+		const payload = await EasyCompress.compress(JSON.stringify(data));
+
+		// Clear recording data before sending the chunk.
+		this.recording = [];
+
+		const url = new URL(EHM.api);
+		url.searchParams.append("s", this.session);
+		const response = await fetch(url.toString(), {
+			method: "POST",
+			mode: 'no-cors',
+			body: payload
+		});
+
+		if (!response.ok) {
+			console.error("Failed to send recording chunk.");
+		} else {
+			// Only set initial when the first chunk has sent successfully.
+			this.initial = false;
+		}
+	}
 
     /**
      * Gets the current time elapsed since the start of the recording.
@@ -190,27 +305,29 @@ class EasyRecorder {
         });
     }
 
+	/**
+	 * Retrieves the core data for the recording.
+	 */
+	retrieveCore() {
+		const promises = [this.styles(), this.scripts(), this.bodyElements()];
+
+		return Promise.all(promises).then(data => {
+			this.coreData.st = data[0];
+			this.coreData.sc = data[1];
+			this.coreData.el = data[2];
+
+			return this.coreData;
+		});
+	}
+
     /**
      * Registers event listeners for various DOM events.
      */
     registerEvents() {
-        document.addEventListener("DOMContentLoaded", async () => {
+        document.addEventListener("DOMContentLoaded", () => {
             this.observeMutations();
-
-            this.styles().then(data => {
-                console.log("styles");
-                console.log(data);
-            });
-            
-            this.scripts().then(data => {
-                console.log("scripts");
-                console.log(data);
-            });
-
-            this.bodyElements().then(data => {
-                console.log("elements");
-                console.log(data);
-            });
+			
+			this.retrieveCore();
         });
 
         document.addEventListener("mousemove", this.mouseMoveEvent.bind(this));
@@ -230,7 +347,8 @@ class EasyRecorder {
      * @param {MouseEvent} event - The mouse event object.
      */
     mouseMoveEvent(event) {
-        this.recording.push(new EasyMouseMoveEvent(this.currentTime, event.clientX, event.clientY));
+        if (this.paused) return;
+		this.recording.push(new EasyMouseMoveEvent(this.currentTime, event.clientX, event.clientY));
     }
 
     /**
@@ -238,6 +356,7 @@ class EasyRecorder {
      * @param {MouseEvent} event - The mouse event object.
      */
     mouseClickEvent(event) {
+		if (this.paused) return;
         this.recording.push(new EasyMouseClickEvent(
             this.currentTime,
             event.clientX,
@@ -253,6 +372,7 @@ class EasyRecorder {
      * @param {KeyboardEvent} event - The keyboard event object.
      */
     keyboardEvent(event) {
+		if (this.paused) return;
         this.recording.push(new EasyKeyboardEvent(
             this.currentTime,
             event.key,
@@ -268,6 +388,7 @@ class EasyRecorder {
      * @param {Event} event - The scroll event object.
      */
     scrollEvent(event) {
+		if (this.paused) return;
         this.recording.push(new EasyScrollEvent(this.currentTime, window.scrollX, window.scrollY));
     }
 
@@ -289,6 +410,8 @@ class EasyRecorder {
      */
     observeMutations() {
         const observer = new MutationObserver(mutations => {
+			if (this.paused) return;
+
             const mutationMap = new Map();
         
             mutations.forEach(mutation => {

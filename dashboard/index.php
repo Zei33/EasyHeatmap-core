@@ -1,6 +1,6 @@
 <?php 
 	require_once("classes/EasyLoc.php");
-	require_once("classes/EasySettings.php");
+	require_once("../shared/classes/EasySettings.php");
 ?>
 <!DOCTYPE html>
 <html class="dark h-full bg-black">

@@ -1,6 +1,6 @@
 <?php 
 	require_once("../classes/EasyLoc.php");
-	require_once("../classes/EasySettings.php");
+	require_once("../../shared/classes/EasySettings.php");
 ?>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="easy-settings-container">
 	<div class="w-full">

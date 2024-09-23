@@ -1,5 +1,5 @@
 <?php 
-require_once(__DIR__ . "/../../shared/database.php");
+require_once(__DIR__ . "/../database.php");
 /**
  * Class EasySettings
  * Handles settings management.
@@ -31,6 +31,11 @@ class EasySettings {
 		$this->prefix = $env->dbTablePrefix;
 	}
 
+	/**
+	 * Loads settings from the database.
+	 * 
+	 * @param bool $fresh Whether to fetch fresh settings from the database.
+	 */
 	private function loadSettings($fresh = false) {
 		if ($fresh || empty($this->settings)) {
 			$query = $this->pdo->prepare("SELECT `key`, `value` FROM {$this->prefix}settings");
@@ -61,6 +66,17 @@ class EasySettings {
 		$this->settings[$key] = $value;
 
 		return $this->settings;
+	}
+
+	public function getSetting($key, $default = null) {
+		$this->loadSettings();
+		
+		if (isset($this->settings[$key])) {
+			return $this->settings[$key];
+		} else {
+			error_log("Setting not found: $key");
+			return $default;
+		}
 	}
 }
 
