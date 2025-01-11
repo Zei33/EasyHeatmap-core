@@ -112,12 +112,12 @@ class EasyRecorder {
 	 */
 	async sendChunk() {
 		let data = {
-			u: this.code,
-			s: this.startTime,
+			s: this.startTime, // TODO: Might only need to attach to first chunk.
 			t: this.currentTime,
 			d: await this.data(),
 		}
 		
+		if (this.code !== null) data.u = this.code;
 		if (this.initial) data.c = this.coreData; // Only attach core data to the first chunk.
 
 		const payload = await EasyCompress.compress(JSON.stringify(data));
