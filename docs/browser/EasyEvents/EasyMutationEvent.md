@@ -1,4 +1,4 @@
-# Browser Scripts - [EasyEvents.js](../scripts/EasyEvents.js) - EasyMutationEvent class
+# Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyMutationEvent class
 
 The `EasyMutationEvent` class extends `EasyEvent` to handle DOM mutation events. It captures changes to the DOM structure, including node additions, removals, and attribute modifications, along with the standard event information inherited from the base class.
 

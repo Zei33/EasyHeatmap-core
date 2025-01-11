@@ -1,4 +1,4 @@
-# Browser Scripts - [EasyEvents.js](../scripts/EasyEvents.js) - EasyMouseMoveEvent class
+# Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyMouseMoveEvent class
 
 The `EasyMouseMoveEvent` class extends `EasyEvent` to specifically handle mouse movement events. It captures mouse coordinates along with the standard event information inherited from the base class.
 

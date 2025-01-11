@@ -1,4 +1,4 @@
-# Browser Scripts - [EasyEvents.js](../scripts/EasyEvents.js)
+# Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js)
 
 The EasyEvents collection is a comprehensive system for capturing, serializing, and replaying browser events. It provides a standardized way to handle various types of browser interactions while maintaining efficiency in network transfer through minimized data formats.
 

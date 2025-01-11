@@ -1,4 +1,4 @@
-# Browser Scripts - [EasyEvents.js](../scripts/EasyEvents.js) - EasyKeyboardEvent class
+# Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyKeyboardEvent class
 
 The `EasyKeyboardEvent` class extends `EasyEvent` to handle keyboard events. It captures key presses, their phases (down/up), and modifier key states along with the standard event information inherited from the base class.
 

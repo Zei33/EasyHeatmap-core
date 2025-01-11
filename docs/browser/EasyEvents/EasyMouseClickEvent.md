@@ -1,4 +1,4 @@
-# Browser Scripts - [EasyEvents.js](../scripts/EasyEvents.js) - EasyMouseClickEvent class
+# Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyMouseClickEvent class
 
 The `EasyMouseClickEvent` class extends `EasyEvent` to handle mouse click events. It captures mouse coordinates, click phase (down/up), and button information along with the standard event information inherited from the base class.
 
