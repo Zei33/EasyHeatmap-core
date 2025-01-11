@@ -1,5 +1,7 @@
 # Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyScrollEvent class
 
+> [EasyEvents Overview](../EasyEvents.md)
+
 The `EasyScrollEvent` class extends `EasyEvent` to handle scroll events. It captures scroll position coordinates along with the standard event information inherited from the base class. This class provides a simplified way to track and serialize scroll positions in the browser.
 
 ## Constructor

@@ -1,5 +1,7 @@
 # Browser Scripts - [EasyEvents.js](/scripts/EasyEvents.js) - EasyEvent class
 
+> [EasyEvents Overview](../EasyEvents.md)
+
 The `EasyEvent` class is designed to capture and standardize browser events along with their contextual information, such as timing, focused elements, and cursor positions. This class is particularly useful for tracking user interactions and maintaining a consistent event format across different browser contexts.
 
 ## Constructor
