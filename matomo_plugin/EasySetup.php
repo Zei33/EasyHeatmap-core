@@ -343,4 +343,23 @@ class EasySetup {
 
 		$this->pdo->exec($query);
 	}
+
+	/**
+	 * Creates the cross origins table.
+	 *
+	 * 'allowed' 0 = pending, 1 = whitelisted, -1 = blacklisted
+	 * @return void
+	 */
+	public function createCrossOriginsTable() {
+		$query = "
+			CREATE TABLE `{$this->prefix}cross_origins` (
+				`id` int unsigned NOT NULL AUTO_INCREMENT,
+				`domain` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+				`allowed` int signed NOT NULL DEFAULT '0',
+				PRIMARY KEY (`id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+		";
+
+		$this->pdo->exec($query);
+	}
 }
