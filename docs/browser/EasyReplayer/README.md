@@ -1,6 +1,6 @@
 # EasyReplayer Session Replay System
 
-The EasyReplayer system provides high-fidelity replay of recorded user sessions by reconstructing the DOM state and replaying events in their original sequence and timing. This document explains how the replay system works.
+The EasyReplayer system provides high-fidelity replay of recorded user sessions by reconstructing the DOM state and replaying events in their original sequence and timing. It works in conjunction with the [EasyEvents](../EasyEvents.md) system for event handling, [EasyRecorder](../EasyRecorder.md) for session capture, and [EasyCompress](../EasyCompress.md)/[EasyDecompress](../EasyDecompress.md) for data transmission.
 
 ## How Session Replay Works
 
@@ -84,9 +84,10 @@ await replayer.load({
 
 ### 3. Event Processing
 
-The system processes different types of events:
+The system processes different types of events from the [EasyEvents](../EasyEvents.md) system:
 
 #### Mouse Movement Events (Type 0)
+The [EasyMouseMoveEvent](../EasyEvents/EasyMouseMoveEvent.md) handler manages cursor positioning and focus:
 ```javascript
 replayMouseMoveEvent(event) {
     // Update cursor position
@@ -100,6 +101,7 @@ replayMouseMoveEvent(event) {
 ```
 
 #### Mouse Click Events (Type 1)
+The [EasyMouseClickEvent](../EasyEvents/EasyMouseClickEvent.md) handler simulates mouse button interactions:
 ```javascript
 replayMouseClickEvent(event) {
     // Position cursor
@@ -114,6 +116,7 @@ replayMouseClickEvent(event) {
 ```
 
 #### Keyboard Events (Type 2)
+The [EasyKeyboardEvent](../EasyEvents/EasyKeyboardEvent.md) handler manages keyboard input and text selection:
 ```javascript
 replayKeyboardEvent(event) {
     // Simulate key press
@@ -127,6 +130,7 @@ replayKeyboardEvent(event) {
 ```
 
 #### Scroll Events (Type 3)
+The [EasyScrollEvent](../EasyEvents/EasyScrollEvent.md) handler manages viewport positioning:
 ```javascript
 replayScrollEvent(event) {
     // Set scroll position
@@ -135,6 +139,7 @@ replayScrollEvent(event) {
 ```
 
 #### Mutation Events (Type 4)
+The [EasyMutationEvent](../EasyEvents/EasyMutationEvent.md) handler manages DOM changes:
 ```javascript
 replayMutationEvent(event) {
     // Apply DOM changes
@@ -175,19 +180,24 @@ class EasyReplayer {
 
 ## Key Components
 
+The replay system relies on three main supporting components:
+
 ### 1. EasyCursor
+The [EasyCursor](./EasyCursor.md) component provides visual cursor simulation:
 - Provides visual cursor representation
 - Handles mouse movement animation
 - Simulates click effects
 - Manages cursor states
 
 ### 2. EasyKeyboard
+The [EasyKeyboard](./EasyKeyboard.md) component handles keyboard simulation:
 - Simulates keyboard input
 - Manages input field states
 - Handles modifier keys
 - Maintains focus states
 
 ### 3. EasyStyles
+The [EasyStyles](./EasyStyles.md) component manages visual styling:
 - Manages stylesheet injection
 - Handles dynamic styles
 - Maintains style consistency
