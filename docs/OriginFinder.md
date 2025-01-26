@@ -1,4 +1,4 @@
-# Cross Origin Finder Script
+# Cross Origin Finder
 
 In order to implement cross origin security in replay iframes, we need to identify all potential cross origins on a client's website. This is a list of domains that are being loaded from a different origin than the main website.
 

@@ -9,6 +9,8 @@ A suite of features will be developed alongside the replay system to detect anom
 - CDP detection
 - User agent mismatch
 
+[Brotector can provide a guide for implementing these checks.](https://github.com/kaliiiiiiiiii/brotector)
+
 ## IP Address Analysis
 
 - Proxy/VPN detection
